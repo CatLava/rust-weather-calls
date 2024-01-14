@@ -1,10 +1,15 @@
 use struct_iterable::Iterable;
+use dotenv::dotenv;
+use reqwest;
 
-fn main()  {
+#[tokio::main]
+async fn main()  {
+    dotenv().ok();
     println!("Hello, world!");
     let test_loc = Location::new(None, Some("Oakland".to_string()), None, None, None, None);
 
-    create_query_string(test_loc);
+    let query_string = create_query_string(test_loc);
+    get_lat_long(&query_string).await;
     return
 }
 
@@ -55,10 +60,19 @@ pub fn create_query_string(location: Location) -> String {
     // TODO this will be a matching and string creation
 }
 
-fn get_lat_long(location: &str) {
-    let url = "https://geocode.maps.co/search?";
-    // Need to get API keys and what not 
-
+async fn get_lat_long(location: &str){
+    let geocode_api_token = std::env::var("GEOCODING_API_KEY").expect("GEOCODING_API_KEY must be set.");
+    let mut url = "https://geocode.maps.co/search?".to_string();
+    url.push_str(location);
+    url.push_str(&format!("&api_key={}",geocode_api_token));
+    println!("{:?}", url);
+    // After string constructed need to make API call 
+    let body = reqwest::get(url)
+        .await
+        .unwrap()
+        .text()
+        .await;
+    println!("body = {:?}", body);
 }
 
 
