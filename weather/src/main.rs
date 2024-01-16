@@ -9,7 +9,7 @@ async fn main()  {
     let test_loc = Location::new(None, Some("Oakland".to_string()), None, None, None, None);
 
     let query_string = create_query_string(test_loc);
-    get_lat_long(&query_string).await;
+    let mut lnl = get_lat_long(&query_string).await;
     return
 }
 
@@ -60,7 +60,7 @@ pub fn create_query_string(location: Location) -> String {
     // TODO this will be a matching and string creation
 }
 
-async fn get_lat_long(location: &str){
+async fn get_lat_long(location: &str) -> Result<String, reqwest::Error>{
     let geocode_api_token = std::env::var("GEOCODING_API_KEY").expect("GEOCODING_API_KEY must be set.");
     let mut url = "https://geocode.maps.co/search?".to_string();
     url.push_str(location);
@@ -73,6 +73,7 @@ async fn get_lat_long(location: &str){
         .text()
         .await;
     println!("body = {:?}", body);
+    return body
 }
 
 
