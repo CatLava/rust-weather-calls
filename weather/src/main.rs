@@ -1,6 +1,11 @@
 use struct_iterable::Iterable;
+use std::error::Error;
+
 use dotenv::dotenv;
 use reqwest;
+use serde_json;
+use serde::{Deserialize, Serialize};
+
 
 #[tokio::main]
 async fn main()  {
@@ -44,6 +49,21 @@ impl Location {
 
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+struct GeoApiFields {
+    place_id: i32,
+    licence: String,
+    osm_type: String,
+    osm_id: i32,
+    boundingbox: Vec<String>,
+    lat: String,
+    lon: String,
+    display_name: String,
+    class: String,
+    r#type: String,
+    importance: f32
+}
+
 pub fn create_query_string(location: Location) -> String {
     // make this a list and join with & for the appropriate query 
     let mut qs: String = "".to_string();
@@ -60,20 +80,27 @@ pub fn create_query_string(location: Location) -> String {
     // TODO this will be a matching and string creation
 }
 
-async fn get_lat_long(location: &str) -> Result<String, reqwest::Error>{
+async fn get_lat_long(location: &str) -> Result<(), reqwest::Error>{
     let geocode_api_token = std::env::var("GEOCODING_API_KEY").expect("GEOCODING_API_KEY must be set.");
     let mut url = "https://geocode.maps.co/search?".to_string();
     url.push_str(location);
     url.push_str(&format!("&api_key={}",geocode_api_token));
     println!("{:?}", url);
     // After string constructed need to make API call 
-    let body = reqwest::get(url)
+    let client = reqwest::Client::new();
+
+    let body = client.get(url)
+        .send()
         .await
-        .unwrap()
-        .text()
-        .await;
-    println!("body = {:?}", body);
-    return body
+        .unwrap();
+        // .text()
+        // .await;
+    //println!("{:?}", body.text().await);
+    let b2 = body.json::<Vec<GeoApiFields>>().await;
+    // TODO match on status code
+    // https://blog.logrocket.com/making-http-requests-rust-reqwest/
+    println!("body = {:?}", b2);
+    return Ok(())
 }
 
 
