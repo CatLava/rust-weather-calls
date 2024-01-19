@@ -14,8 +14,14 @@ async fn main()  {
     let test_loc = Location::new(None, Some("Oakland".to_string()), None, None, None, None);
 
     let query_string = create_query_string(test_loc);
-    let mut lnl = get_lat_long(&query_string).await;
-    println!("{:?}", lnl);
+    // TODO need to unwrap safely here
+    let mut lnl = get_lat_long(&query_string).await.unwrap();
+    let first_loc = lnl.into_iter().nth(0);
+    // for loc in lnl.into_iter(){
+    //     println!("place");
+    //     println!("{:?}, {:?}", loc.lat, loc.lon);
+    // }
+    println!("{:?}", first_loc);
     return
 }
 
