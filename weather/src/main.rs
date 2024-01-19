@@ -15,6 +15,7 @@ async fn main()  {
 
     let query_string = create_query_string(test_loc);
     let mut lnl = get_lat_long(&query_string).await;
+    println!("{:?}", lnl);
     return
 }
 
@@ -80,7 +81,7 @@ pub fn create_query_string(location: Location) -> String {
     // TODO this will be a matching and string creation
 }
 
-async fn get_lat_long(location: &str) -> Result<(), reqwest::Error>{
+async fn get_lat_long(location: &str) -> Result<Vec<GeoApiFields>, reqwest::Error>{
     let geocode_api_token = std::env::var("GEOCODING_API_KEY").expect("GEOCODING_API_KEY must be set.");
     let mut url = "https://geocode.maps.co/search?".to_string();
     url.push_str(location);
@@ -95,12 +96,19 @@ async fn get_lat_long(location: &str) -> Result<(), reqwest::Error>{
         .unwrap();
         // .text()
         // .await;
+    // Use below for troubleshooting th eobject return 
     //println!("{:?}", body.text().await);
+    match body.status() {
+        reqwest::StatusCode::OK => {println!("Success!")},
+        _ => {
+            panic!("Uh oh! Something unexpected happened.");
+        },
+    }
     let b2 = body.json::<Vec<GeoApiFields>>().await;
     // TODO match on status code
     // https://blog.logrocket.com/making-http-requests-rust-reqwest/
-    println!("body = {:?}", b2);
-    return Ok(())
+    // println!("body = {:?}", b2);
+    return b2
 }
 
 
