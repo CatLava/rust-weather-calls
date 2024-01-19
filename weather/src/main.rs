@@ -16,12 +16,13 @@ async fn main()  {
     let query_string = create_query_string(test_loc);
     // TODO need to unwrap safely here
     let mut lnl = get_lat_long(&query_string).await.unwrap();
-    let first_loc = lnl.into_iter().nth(0);
-    // for loc in lnl.into_iter(){
-    //     println!("place");
-    //     println!("{:?}, {:?}", loc.lat, loc.lon);
-    // }
-    println!("{:?}", first_loc);
+    let first_loc = lnl.into_iter().nth(0).unwrap();
+    
+    println!("{:?}", first_loc.display_name);
+    println!("{:?}", first_loc.lat);
+    println!("{:?}", first_loc.lon);
+
+
     return
 }
 
@@ -106,6 +107,7 @@ async fn get_lat_long(location: &str) -> Result<Vec<GeoApiFields>, reqwest::Erro
     //println!("{:?}", body.text().await);
     match body.status() {
         reqwest::StatusCode::OK => {println!("Success!")},
+        // TODO need to move this into the success response 
         _ => {
             panic!("Uh oh! Something unexpected happened.");
         },
@@ -115,6 +117,12 @@ async fn get_lat_long(location: &str) -> Result<Vec<GeoApiFields>, reqwest::Erro
     // https://blog.logrocket.com/making-http-requests-rust-reqwest/
     // println!("body = {:?}", b2);
     return b2
+}
+
+async fn get_weather_from_lat_long(lat: f32, lon: f32){
+    let weather_api_token = std::env::var("WEATHER_API_KEY").expect("GEOCODING_API_KEY must be set.");
+    // https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={API key}
+    let mut url = "https://api.openweathermap.org/data/2.5/weather?".to_string();
 }
 
 
