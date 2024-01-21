@@ -22,6 +22,8 @@ async fn main()  {
     println!("{:?}", first_loc.lat);
     println!("{:?}", first_loc.lon);
 
+    let weather = get_weather_from_lat_long(&first_loc.lat, &first_loc.lon).await;
+    println!("WEAHTER2");
 
     return
 }
@@ -119,10 +121,25 @@ async fn get_lat_long(location: &str) -> Result<Vec<GeoApiFields>, reqwest::Erro
     return b2
 }
 
-async fn get_weather_from_lat_long(lat: f32, lon: f32){
+async fn get_weather_from_lat_long(lat: &str, lon: &str) -> Result<(), reqwest::Error>{
     let weather_api_token = std::env::var("WEATHER_API_KEY").expect("GEOCODING_API_KEY must be set.");
     // https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={API key}
     let mut url = "https://api.openweathermap.org/data/2.5/weather?".to_string();
+    // Todo can set temperate type into imperial 
+    url.push_str(&format!("lat={}&lon={}&appid={}&units=imperial",lat, lon, weather_api_token));
+    let client = reqwest::Client::new();
+
+    let body = client.get(url)
+        .send()
+        .await
+        .unwrap()
+        .text()
+        .await;
+    println!("Weather");
+    println!("{:?}", body);
+    // TODO need to get return type into a struct 
+    return Ok(())
+
 }
 
 
