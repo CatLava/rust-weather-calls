@@ -121,6 +121,25 @@ async fn get_lat_long(location: &str) -> Result<Vec<GeoApiFields>, reqwest::Erro
     return b2
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct WeatherResponse {
+    coord: String,
+    weather: String,
+    base: String, 
+    main: String,
+    visibility: String,
+    wind: String,
+    rain: String,
+    clouds: String,
+    dt: String,
+    sys: String,
+    timezone: String,
+    id: String,
+    name: String,
+    code: String
+
+}
+
 async fn get_weather_from_lat_long(lat: &str, lon: &str) -> Result<(), reqwest::Error>{
     let weather_api_token = std::env::var("WEATHER_API_KEY").expect("GEOCODING_API_KEY must be set.");
     // https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={API key}
