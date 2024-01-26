@@ -58,14 +58,27 @@ pub fn create_query_string(location: Location) -> String {
     let mut qs: String = "".to_string();
     let mut query_string = Vec::new()
     match location.city {
-        Some(city) => query_string.push(&format!("city={}", city)),
+        Some(city) => query_string.push(&format!("city={}", city.replace(" ", "+"))),
         None => (),
     }
     match location.street {
-        Some(street) => query_string.push("hello"),
+        Some(street) => query_string.push("street={}", street.replace(" ", "+")),
+        None => (),
+    }
+    match location.county {
+        Some(county) => query_string.push("county={}", county.replace(" ", "+")),
+        None => (),
+    }
+    match location.state {
+        Some(state) => query_string.push("state={}", state.replace(" ", "+")),
+        None => (),
+    }
+    match location.postalcode {
+        Some(postalcode) => query_string.push("postalcode={}", postalcode.replace(" ", "+")),
         None => (),
     }
     println!("{:?}", qs);
+    let final_string = query_string.join("&")
     return qs
     // TODO this will be a matching and string creation
 }
