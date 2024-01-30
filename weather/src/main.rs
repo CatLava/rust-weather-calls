@@ -6,14 +6,16 @@ use reqwest;
 use serde_json;
 use serde::{Deserialize, Serialize};
 
+mod location_map;
+
 
 #[tokio::main]
 async fn main()  {
     dotenv().ok();
     println!("Hello, world!");
-    let test_loc = Location::new(None, Some("Oakland".to_string()), None, None, None, None);
+    let test_loc = location_map::Location::new(None, Some("Oakland".to_string()), None, None, None, None);
 
-    let query_string = create_query_string(test_loc);
+    let query_string = location_map::create_query_string(test_loc);
     // TODO need to unwrap safely here
     let mut lnl = get_lat_long(&query_string).await.unwrap();
     let first_loc = lnl.into_iter().nth(0).unwrap();

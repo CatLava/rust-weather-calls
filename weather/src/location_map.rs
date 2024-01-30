@@ -18,7 +18,7 @@ pub struct Location {
 }
 
 impl Location {
-    fn new(street: Option<String>,
+    pub fn new(street: Option<String>,
         city: Option<String>,
         county: Option<String>,
         state: Option<String>,
@@ -38,7 +38,7 @@ impl Location {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-struct GeoApiFields {
+pub struct GeoApiFields {
     place_id: i32,
     licence: String,
     osm_type: String,
@@ -62,23 +62,37 @@ pub fn create_query_string(location: Location) -> String {
         None => (),
     }
     match location.street {
-        Some(street) => query_string.push("street={}", street.replace(" ", "+")),
+        Some(street) => query_string.push(&format!("street={}", street.replace(" ", "+"))),
         None => (),
     }
     match location.county {
-        Some(county) => query_string.push("county={}", county.replace(" ", "+")),
+        Some(county) => query_string.push(&format!("county={}", county.replace(" ", "+"))),
         None => (),
     }
     match location.state {
-        Some(state) => query_string.push("state={}", state.replace(" ", "+")),
+        Some(state) => query_string.push(&format!("state={}", state.replace(" ", "+"))),
         None => (),
     }
     match location.postalcode {
-        Some(postalcode) => query_string.push("postalcode={}", postalcode.replace(" ", "+")),
+        Some(postalcode) => query_string.push(&format!("postalcode={}", postalcode.replace(" ", "+"))),
         None => (),
     }
     println!("{:?}", qs);
-    let final_string = query_string.join("&")
+    let final_string = query_string.join("&");
     return qs
     // TODO this will be a matching and string creation
+}
+
+#[cfg(tests)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn single_city(
+        assert_eq!(create_query_string(Location{
+            city = "oakland"
+        }) == "city=oakland")
+    )
+
+
 }
