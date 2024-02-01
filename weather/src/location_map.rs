@@ -1,9 +1,5 @@
 use struct_iterable::Iterable;
-use std::error::Error;
 
-use dotenv::dotenv;
-use reqwest;
-use serde_json;
 use serde::{Deserialize, Serialize};
 
 // This is as defined in the geocode API 
@@ -39,14 +35,14 @@ impl Location {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct GeoApiFields {
-    place_id: i32,
-    licence: String,
+    pub place_id: i32,
+    pub licence: String,
     osm_type: String,
     osm_id: i32,
     boundingbox: Vec<String>,
-    lat: String,
-    lon: String,
-    display_name: String,
+    pub lat: String,
+    pub lon: String,
+    pub display_name: String,
     class: String,
     r#type: String,
     importance: f32
@@ -55,44 +51,57 @@ pub struct GeoApiFields {
 // TODO this needs testing and tests written 
 pub fn create_query_string(location: Location) -> String {
     // make this a list and join with & for the appropriate query 
-    let mut qs: String = "".to_string();
-    let mut query_string = Vec::new()
-    match location.city {
-        Some(city) => query_string.push(&format!("city={}", city.replace(" ", "+"))),
+    let mut query_string: Vec<String> = Vec::new();
+    match location.street {
+        Some(street) => query_string.push(format!("street={}", street.replace(" ", "+")).to_owned()),
         None => (),
     }
-    match location.street {
-        Some(street) => query_string.push(&format!("street={}", street.replace(" ", "+"))),
+    match location.city {
+        Some(city) => query_string.push(format!("city={}", city.replace(" ", "+")).to_owned()),
         None => (),
     }
     match location.county {
-        Some(county) => query_string.push(&format!("county={}", county.replace(" ", "+"))),
+        Some(county) => query_string.push(format!("county={}", county.replace(" ", "+")).to_owned()),
         None => (),
     }
     match location.state {
-        Some(state) => query_string.push(&format!("state={}", state.replace(" ", "+"))),
+        Some(state) => query_string.push(format!("state={}", state.replace(" ", "+")).to_owned()),
         None => (),
     }
     match location.postalcode {
-        Some(postalcode) => query_string.push(&format!("postalcode={}", postalcode.replace(" ", "+"))),
+        Some(postalcode) => query_string.push(format!("postalcode={}", postalcode.replace(" ", "+")).to_owned()),
         None => (),
     }
-    println!("{:?}", qs);
     let final_string = query_string.join("&");
-    return qs
+    return final_string
     // TODO this will be a matching and string creation
 }
 
-#[cfg(tests)]
+#[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn single_city(
+    fn single_city() {
         assert_eq!(create_query_string(Location{
-            city = "oakland"
-        }) == "city=oakland")
-    )
+            street: None,
+            city: Some("oakland".to_string()),
+            county : None,
+            state: None,
+            country : None,
+            postalcode : None,
+        }), "city=oakland");
+    }
 
-
+    #[test]
+    fn city_and_street() {
+        assert_eq!(create_query_string(Location{
+            street: Some("4122 Broadway".to_string()),
+            city: Some("oakland".to_string()),
+            county : None,
+            state: None,
+            country : None,
+            postalcode : None,
+        }), "street=4122+Broadway&city=oakland");
+    }
 }

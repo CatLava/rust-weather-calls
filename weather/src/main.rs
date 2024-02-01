@@ -1,9 +1,7 @@
-use struct_iterable::Iterable;
 use std::error::Error;
 
 use dotenv::dotenv;
 use reqwest;
-use serde_json;
 use serde::{Deserialize, Serialize};
 
 mod location_map;
@@ -32,7 +30,7 @@ async fn main()  {
 
 
 
-async fn get_lat_long(location: &str) -> Result<Vec<GeoApiFields>, reqwest::Error>{
+async fn get_lat_long(location: &str) -> Result<Vec<location_map::GeoApiFields>, reqwest::Error>{
     let geocode_api_token = std::env::var("GEOCODING_API_KEY").expect("GEOCODING_API_KEY must be set.");
     let mut url = "https://geocode.maps.co/search?".to_string();
     url.push_str(location);
@@ -56,7 +54,7 @@ async fn get_lat_long(location: &str) -> Result<Vec<GeoApiFields>, reqwest::Erro
             panic!("Uh oh! Something unexpected happened.");
         },
     }
-    let b2 = body.json::<Vec<GeoApiFields>>().await;
+    let b2 = body.json::<Vec<location_map::GeoApiFields>>().await;
     // TODO match on status code
     // https://blog.logrocket.com/making-http-requests-rust-reqwest/
     // println!("body = {:?}", b2);
@@ -103,6 +101,14 @@ async fn get_weather_from_lat_long(lat: &str, lon: &str) -> Result<(), reqwest::
 
 }
 
+#[cfg(tests)]
+mod tests {
+    use super::*;
 
-
-// From lat and long, get a weather call 
+    #[test]
+    fn single_city() {
+        assert_eq!(create_query_string(Location{
+            city = "oakland"
+        }) == "city=oakland");
+    }
+}
