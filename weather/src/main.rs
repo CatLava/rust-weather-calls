@@ -15,22 +15,28 @@ async fn main()  {
 
     let query_string = location_map::create_query_string(test_loc);
     // TODO need to unwrap safely here
-    let mut lnl = get_lat_long(&query_string).await.unwrap();
-    let first_loc = lnl.into_iter().nth(0).unwrap();
+    let first_option = get_lat_long(&query_string).await
+                                    .unwrap()
+                                    .into_iter()
+                                    .nth(0).
+                                    unwrap();
     
-    println!("{:?}", first_loc.display_name);
-    println!("{:?}", first_loc.lat);
-    println!("{:?}", first_loc.lon);
+    println!("{:?}", first_option.display_name);
+    println!("{:?}", first_option.lat);
+    println!("{:?}", first_option.lon);
 
-    let weather = get_weather_from_lat_long(&first_loc.lat, &first_loc.lon).await;
-    println!("WEAHTER2");
+    let weather: WeatherResponse  = get_weather_from_lat_long(&first_option.lat, &first_option.lon).await.unwrap();
+    println!("{:?}", weather);
+    println!("{:?}", weather.main);
+    println!("{:?}", weather.main.temp_min);
+
 
     return
 }
 
 
 
-async fn get_lat_long(location: &str) -> Result<Vec<location_map::GeoApiFields>, reqwest::Error>{
+async fn get_lat_long(location: &str) -> Option<Vec<location_map::GeoApiFields>>{
     let geocode_api_token = std::env::var("GEOCODING_API_KEY").expect("GEOCODING_API_KEY must be set.");
     let mut url = "https://geocode.maps.co/search?".to_string();
     url.push_str(location);
@@ -45,20 +51,29 @@ async fn get_lat_long(location: &str) -> Result<Vec<location_map::GeoApiFields>,
         .unwrap();
         // .text()
         // .await;
-    // Use below for troubleshooting th eobject return 
+    // Use below for troubleshooting the object return 
     //println!("{:?}", body.text().await);
-    match body.status() {
-        reqwest::StatusCode::OK => {println!("Success!")},
+    let resp: Option<Vec<location_map::GeoApiFields>> = match body.status() {
+        reqwest::StatusCode::OK =>{
+            match body.json::<Vec<location_map::GeoApiFields>>().await {
+                Ok(body) => {
+                    println!("Body success {:?}", body);
+                    Some(body)
+                }
+                _ => {
+                    println!("unable to move forward");
+                    None
+                }
+            }
+        },
         // TODO need to move this into the success response 
+
         _ => {
             panic!("Uh oh! Something unexpected happened.");
         },
-    }
-    let b2 = body.json::<Vec<location_map::GeoApiFields>>().await;
-    // TODO match on status code
-    // https://blog.logrocket.com/making-http-requests-rust-reqwest/
-    // println!("body = {:?}", b2);
-    return b2
+    };
+    //let status = body.json::<Vec<location_map::GeoApiFields>>().await;
+    return resp
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -66,7 +81,7 @@ pub struct WeatherResponse {
     coord: String,
     weather: String,
     base: String, 
-    main: String,
+    main: WeatherMain,
     visibility: String,
     wind: String,
     rain: String,
@@ -80,7 +95,17 @@ pub struct WeatherResponse {
 
 }
 
-async fn get_weather_from_lat_long(lat: &str, lon: &str) -> Result<(), reqwest::Error>{
+#[derive(Serialize, Deserialize, Debug)]
+pub struct WeatherMain {
+    temp: String,
+    feels_like: String,
+    temp_min: String,
+    temp_max: String,
+    pressure: String,
+    humidity: String
+}
+
+async fn get_weather_from_lat_long(lat: &str, lon: &str) -> Result<WeatherResponse, reqwest::Error>{
     let weather_api_token = std::env::var("WEATHER_API_KEY").expect("GEOCODING_API_KEY must be set.");
     // https://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={API key}
     let mut url = "https://api.openweathermap.org/data/2.5/weather?".to_string();
@@ -97,18 +122,6 @@ async fn get_weather_from_lat_long(lat: &str, lon: &str) -> Result<(), reqwest::
     println!("Weather");
     println!("{:?}", body);
     // TODO need to get return type into a struct 
-    return Ok(())
+    return body
 
-}
-
-#[cfg(tests)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn single_city() {
-        assert_eq!(create_query_string(Location{
-            city = "oakland"
-        }) == "city=oakland");
-    }
 }
