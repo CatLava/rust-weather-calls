@@ -1,20 +1,24 @@
 use std::{error::Error, vec};
 use std::collections::HashMap;
+use clap::Parser;
 
 use dotenv::dotenv;
 use reqwest;
 use serde::{Deserialize, Serialize};
 
+mod cli_options;
 mod location_map;
 
 
 #[tokio::main]
 async fn main()  {
     dotenv().ok();
-    println!("Hello, world!");
+    let args: cli_options::LocationArgs = cli_options::LocationArgs::parse();
     let test_loc = location_map::Location::new(None, Some("Oakland".to_string()), None, None, None, None);
+    let test2_loc = location_map::Location::new(args.street, args.city, None, args.state, None, None);
+    println!("{:?}", test2_loc);
 
-    let query_string = location_map::create_query_string(test_loc);
+    let query_string = location_map::create_query_string(test2_loc);
     // TODO need to unwrap safely here
     let first_option = get_lat_long(&query_string).await
                                     .unwrap()
@@ -67,8 +71,6 @@ async fn get_lat_long(location: &str) -> Option<Vec<location_map::GeoApiFields>>
                 }
             }
         },
-        // TODO need to move this into the success response 
-
         _ => {
             panic!("Uh oh! Something unexpected happened.");
         },
@@ -157,8 +159,6 @@ async fn get_weather_from_lat_long(lat: &str, lon: &str) -> Option<WeatherRespon
                 }
             }
         },
-        // TODO need to move this into the success response 
-
         _ => {
             panic!("Uh oh! Something unexpected happened.");
         },

@@ -3,7 +3,7 @@ use struct_iterable::Iterable;
 use serde::{Deserialize, Serialize};
 
 // This is as defined in the geocode API 
-#[derive(Iterable)]
+#[derive(Iterable, Serialize, Deserialize, Debug)]
 pub struct Location {
     street: Option<String>,
     city: Option<String>,
