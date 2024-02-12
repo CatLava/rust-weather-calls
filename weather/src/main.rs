@@ -14,7 +14,7 @@ mod location_map;
 async fn main()  {
     dotenv().ok();
     let args: cli_options::LocationArgs = cli_options::LocationArgs::parse();
-    let test_loc = location_map::Location::new(None, Some("Oakland".to_string()), None, None, None, None);
+    // let test_loc = location_map::Location::new(None, Some("Oakland".to_string()), None, None, None, None);
     let test2_loc = location_map::Location::new(args.street, args.city, None, args.state, None, None);
     println!("{:?}", test2_loc);
 
@@ -26,15 +26,15 @@ async fn main()  {
                                     .nth(0).
                                     unwrap();
     
-    println!("{:?}", first_option.display_name);
+    println!("The weather in {:?}, will be :", first_option.display_name);
     println!("{:?}", first_option.lat);
     println!("{:?}", first_option.lon);
 
-    let weather  = get_weather_from_lat_long(&first_option.lat, &first_option.lon).await.unwrap();
-    println!("{:?}", weather);
-    println!("{:?}", weather.main);
-    println!("{:?}", weather.main.temp_min);
-
+    let weather  = get_weather_from_lat_long(&first_option.lat, &first_option.lon).await.expect("No weather data found");
+    println!("{:?}", weather.weather[0].description);
+    println!("Where the temperature is: {:?} F", weather.main.temp);
+    println!("It will feel like: {:?} F", weather.main.feels_like);
+    // println!("{:?}", weather.main.temp_min);
 
     return
 }
@@ -144,13 +144,13 @@ async fn get_weather_from_lat_long(lat: &str, lon: &str) -> Option<WeatherRespon
         .unwrap();
         // .text()
         // .await;
-    println!("Weather");
-    println!("{:?}", body);
+    // println!("Weather");
+    // println!("{:?}", body);
     let resp =  match body.status() {
         reqwest::StatusCode::OK =>{
             match body.json::<WeatherResponse>().await {
                 Ok(body) => {
-                    println!("Body success {:?}", body);
+                    //println!("Body success {:?}", body);
                     Some(body)
                 }
                 _ => {
@@ -163,7 +163,7 @@ async fn get_weather_from_lat_long(lat: &str, lon: &str) -> Option<WeatherRespon
             panic!("Uh oh! Something unexpected happened.");
         },
     };
-    println!("{:?}", resp);
+    //println!("{:?}", resp);
     return resp
 
 }
